@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS weather_observations (
+    id BIGSERIAL PRIMARY KEY,
+    city VARCHAR(100) NOT NULL,
+    country VARCHAR(100) NOT NULL,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    temperature_c DOUBLE PRECISION NOT NULL,
+    humidity INTEGER NOT NULL,
+    wind_speed DOUBLE PRECISION NOT NULL,
+    weather_code INTEGER NOT NULL,
+    observed_at TIMESTAMPTZ NOT NULL,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_weather_observations_city_observed_at UNIQUE (city, observed_at),
+    CONSTRAINT ck_weather_observations_latitude CHECK (latitude BETWEEN -90 AND 90),
+    CONSTRAINT ck_weather_observations_longitude CHECK (longitude BETWEEN -180 AND 180),
+    CONSTRAINT ck_weather_observations_temperature_c CHECK (temperature_c BETWEEN -100 AND 70),
+    CONSTRAINT ck_weather_observations_humidity CHECK (humidity BETWEEN 0 AND 100),
+    CONSTRAINT ck_weather_observations_wind_speed CHECK (wind_speed >= 0),
+    CONSTRAINT ck_weather_observations_weather_code CHECK (weather_code >= 0)
+);

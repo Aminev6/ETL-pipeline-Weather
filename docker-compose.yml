@@ -1,0 +1,39 @@
+services:
+  etl:
+    build: .
+    working_dir: /app
+    environment:
+      # Inside Compose, the database hostname is the postgres service name.
+      # Local Windows runs keep DB_HOST=localhost in .env.
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-weather_db}
+      DB_USER: ${DB_USER:-etl_user}
+      DB_PASSWORD: ${DB_PASSWORD:-etl_password}
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["python", "-c", "print('ETL image ready')"]
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${DB_NAME:-weather_db}
+      POSTGRES_USER: ${DB_USER:-etl_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-etl_password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
